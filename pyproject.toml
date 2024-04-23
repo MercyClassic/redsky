@@ -1,32 +1,36 @@
-[tool.poetry]
+[build-system]
+requires = ["setuptools>=66.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[project]
 name = "redsky"
-version = "0.1.0"
-description = ""
-authors = []
+version = "1.1.0"
+readme = "README.md"
+authors = [
+    { name = "MercyClassic" },
+]
+license = { text = "Apache-2.0" }
+description = "Micro Web Framework"
+requires-python = ">=3.10"
+classifiers = [
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries",
+    "Typing :: Typed",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    'exceptiongroup>=1.1.3; python_version<"3.11"',
+]
 
-[tool.black]
-line-length = 100
-
-[tool.isort]
-atomic = true
-profile = "black"
-
-
-[tool.poetry.dependencies]
-python="3.11.4"
-pre-commit = "^3.4.0"
-uvicorn = "^0.25.0"
-
-[tool.poetry.group.dev.dependencies]
-flake8 = "^6.1.0"
-flake8-bugbear = "^23.3.12"
-flake8-builtins = "^2.1.0"
-flake8-cognitive-complexity = "^0.1.0"
-flake8-commas = "^2.1.0"
-flake8-django = "^1.1.5"
-flake8-quotes = "^3.3.2"
-flake8-todo = "^0.7"
-flake8-variables-names = "^0.0.5"
-isort = "^5.12.0"
-black="^23.7.0"
-add-trailing-comma="^3.0.1"
+[project.urls]
+"Source" = "https://github.com/MercyClassic/redsky"

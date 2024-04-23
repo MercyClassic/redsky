@@ -1,6 +1,5 @@
 import json
 import re
-from typing import Dict
 
 from redsky.request import Request
 
@@ -15,7 +14,7 @@ class HttpRequestParser:
         body = self.parse_body(content_type)
         query_params = self.parse_query_params()
         path_params = self.parse_path_params()
-        request = Request(
+        return Request(
             http_version=self._scope['http_version'],
             method=self._scope['method'],
             path=self._scope['path'],
@@ -24,24 +23,23 @@ class HttpRequestParser:
             headers=headers,
             body=body,
         )
-        return request
 
-    def parse_headers(self) -> Dict[str, str]:
+    def parse_headers(self) -> dict[str, str]:
         headers = {}
         for key, value in self._scope['headers']:
             headers[key.decode()] = value.decode()
         return headers
 
-    def parse_body(self, content_type: str) -> Dict[str, str]:
+    def parse_body(self, content_type: str) -> dict[str, str] | None:
         if content_type == 'application/json':
             return self._parse_as_json()
         elif content_type == 'application/x-www-form-urlencoded':
             return self._parse_as_form_urlencoded()
 
-    def _parse_as_json(self) -> Dict[str, str]:
+    def _parse_as_json(self) -> dict[str, str]:
         return json.loads(self._scope['body']) if self._scope['body'] else {}
 
-    def _parse_as_form_urlencoded(self) -> Dict[str, str]:
+    def _parse_as_form_urlencoded(self) -> dict[str, str]:
         body = {}
         data = self._scope['body'].decode().split('&')
         for kv in data:
@@ -49,7 +47,7 @@ class HttpRequestParser:
             body[key] = value
         return body
 
-    def parse_query_params(self) -> Dict[str, str]:
+    def parse_query_params(self) -> dict[str, str]:
         if not self._scope['query_string']:
             return {}
         query_params = {}
@@ -59,7 +57,7 @@ class HttpRequestParser:
             query_params[key] = value
         return query_params
 
-    def parse_path_params(self) -> Dict[str, str]:
+    def parse_path_params(self) -> dict[str, str]:
         request_path = self._scope['path'].split('/')
         original_path = self._scope['original_path'].split('/')
         path_params = {}

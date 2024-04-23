@@ -1,7 +1,9 @@
 import re
-from typing import Callable, Dict
+from collections.abc import Callable
+from typing import Any
 
-from .path_operation import PathOperation
+from redsky.responses.response import BaseResponse
+from redsky.routers.path_operation import PathOperation
 
 
 class APIRouter:
@@ -9,7 +11,7 @@ class APIRouter:
         self.prefix = prefix
         self._routes = {}
 
-    def get_routes(self) -> Dict:
+    def get_routes(self) -> dict[PathOperation, Callable]:
         return self._routes
 
     def _register_as_method(
@@ -31,11 +33,10 @@ class APIRouter:
         path: str,
         http_method: str,
     ) -> Callable:
-        def decorator(controller: Callable):
+        def wrapper(controller: Callable) -> Callable[[Any], BaseResponse]:
             self._register_as_method(controller, path, http_method)
             return controller
-
-        return decorator
+        return wrapper
 
     def _normalize_path(self, path: str) -> str:
         path = path.rstrip('/')

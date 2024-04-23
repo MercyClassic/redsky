@@ -1,7 +1,7 @@
 **<h1> RedSky is the simple Framework to build ASGI Application </h1>**
 **<h2> You can use APIRouter to implement endpoints </h2>**
 ```python
-from redsky.routers import APIRouter
+from redsky import APIRouter
 
 router = APIRouter(prefix='/prefix')
 
@@ -10,7 +10,7 @@ async def json_ping():
     return JsonRespose(status_code=200, body='pong')
 
 
-@router.get(path='/')
+@router.get(path='/html')
 async def html_ping():
     return HtmlRespose(status_code=200, body='<h1> pong </h1>')
 ```

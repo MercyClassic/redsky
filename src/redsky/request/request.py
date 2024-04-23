@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, Literal
+from typing import Literal
 
 
 class HttpVersion(Enum):
@@ -30,7 +30,7 @@ class Request:
         HttpMethod.delete,
     ]
     path: str
-    query_params: Dict[str, str]
-    path_params: Dict[str, str]
-    headers: Dict[str, str]
-    body: Dict | None
+    query_params: dict[str, str]
+    path_params: dict[str, str]
+    headers: dict[str, str]
+    body: dict[str, str] | None

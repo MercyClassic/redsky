@@ -7,35 +7,14 @@ repos:
       - id: debug-statements
         language_version: python3
 
-  - repo: https://github.com/psf/black
-    rev: 23.7.0
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.4.1
     hooks:
-      - id: black
-        args: [ --skip-string-normalization, --line-length=100, ./redsky ]
-        language_version: python3
+      - id: ruff
+        args: [--config, ./pyproject.toml]
 
-  - repo: https://github.com/timothycrosley/isort
-    rev: 5.12.0
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v0.991
     hooks:
-      - id: isort
-        args: [ --profile=black ]
-
-  - repo: https://github.com/asottile/add-trailing-comma
-    rev: v3.0.1
-    hooks:
-      - id: add-trailing-comma
-
-  - repo: https://github.com/pycqa/flake8.git
-    rev: 6.1.0
-    hooks:
-      - id: flake8
-        args: [--config, .flake8]
-        additional_dependencies: [
-          "flake8-bugbear",
-          "flake8-builtins",
-          "flake8-cognitive-complexity",
-          "flake8-commas",
-          "flake8-quotes",
-          "flake8-todo",
-          "flake8-variables-names",
-        ]
+    -   id: mypy
+        args: [--config-file, ./pyproject.toml]

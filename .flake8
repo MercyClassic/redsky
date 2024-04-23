@@ -1,8 +1,0 @@
-[flake8]
-exclude =
-    __init__.py
-    *.git
-    */__pycache__/*
-max-line-length=100
-max-cognitive-complexity=7
-inline-quotes = '

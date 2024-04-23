@@ -1,14 +1,16 @@
 import inspect
 import re
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Callable, Dict
+from typing import TYPE_CHECKING, Any
 
 import redsky.request as request_module
 from redsky.interfaces.routers import APIRouter
 from redsky.request import Request
 from redsky.request.parser import HttpRequestParser
-from redsky.responses.response import BaseResponse
-from redsky.routers.path_operation import PathOperation
+
+if TYPE_CHECKING:
+    from redsky.routers.path_operation import PathOperation
 
 
 @dataclass
@@ -18,18 +20,18 @@ class Controller:
 
 
 class RedSky:
-    def __init__(self):
-        self._routes: Dict[PathOperation, Callable] = {}
+    def __init__(self) -> None:
+        self._routes: dict[PathOperation, Callable] = {}
 
-    def include_router(self, router: APIRouter):
+    def include_router(self, router: APIRouter) -> None:
         self._routes.update(router.get_routes())
 
-    @staticmethod
     def _add_params_to_controller(
-        signature: inspect.Signature,
-        request: Request,
-        params: dict,
-    ) -> None:
+            self,
+            signature: inspect.Signature,
+            request: Request,
+    ) -> dict[str, Any]:
+        params = {}
         for key, value in signature.parameters.items():
             if value.annotation == request_module.Request:
                 params[key] = request
@@ -37,13 +39,12 @@ class RedSky:
             to_pass = request.path_params.get(value.name)
             if to_pass:
                 params[value.name] = to_pass
+        return params
 
-    def make_request(self, scope: dict) -> Request:
-        parser = HttpRequestParser(scope)
-        request = parser.parse()
-        return request
+    def _make_request(self, scope: dict) -> Request:
+        return HttpRequestParser(scope).parse()
 
-    async def read_body(self, receive: Callable) -> bytes:
+    async def _read_body(self, receive: Callable) -> bytes:
         body = b''
         more_body = True
 
@@ -54,7 +55,7 @@ class RedSky:
 
         return body
 
-    async def controller_not_found(self, send: Callable) -> None:
+    async def _controller_not_found(self, send: Callable) -> None:
         await send(
             {
                 'type': 'http.response.start',
@@ -73,10 +74,10 @@ class RedSky:
             },
         )
 
-    def get_controller(
+    def _get_controller(
         self,
         path: str,
-    ) -> Controller:
+    ) -> Controller | None:
         for path_operation, controller in self._routes.items():
             if re.fullmatch(path_operation.regex_path, path):
                 return Controller(
@@ -88,42 +89,38 @@ class RedSky:
         scope['type'] = 'http'
         scope['path'] = scope['path'].rstrip('/')
 
-        controller = self.get_controller(scope['path'])
+        controller = self._get_controller(scope['path'])
         if not controller:
-            await self.controller_not_found(send)
-            return
-
-        scope['body'] = await self.read_body(receive)
-        scope['original_path'] = controller.original_path
-        request = self.make_request(scope)
-
-        controller = controller.controller
-
-        params = {}
-        signature = inspect.signature(controller)
-        self._add_params_to_controller(
-            signature,
-            request,
-            params,
-        )
-
-        response: BaseResponse
-        if inspect.iscoroutinefunction(controller):
-            response = await controller(**params)
+            await self._controller_not_found(send)
         else:
-            response = controller(**params)
+            scope['body'] = await self._read_body(receive)
+            scope['original_path'] = controller.original_path
+            request = self._make_request(scope)
 
-        await send(
-            {
-                'type': 'http.response.start',
-                'status': response.status_code,
-                'headers': response.headers,
-            },
-        )
-        await send(
-            {
-                'type': 'http.response.body',
-                'body': response.body,
-                'more_body': False,
-            },
-        )
+            controller = controller.controller
+
+            signature = inspect.signature(controller)
+            params = self._add_params_to_controller(
+                signature,
+                request,
+            )
+
+            if inspect.iscoroutinefunction(controller):
+                response = await controller(**params)
+            else:
+                response = controller(**params)
+
+            await send(
+                {
+                    'type': 'http.response.start',
+                    'status': response.status_code,
+                    'headers': response.headers,
+                },
+            )
+            await send(
+                {
+                    'type': 'http.response.body',
+                    'body': response.body,
+                    'more_body': False,
+                },
+            )
